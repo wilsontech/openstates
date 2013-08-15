@@ -2,4 +2,4 @@ name = "Open States"
 description = Allows your site to integrate with the Open States API
 core = 7.x
 package = Open States
-; configure = admin/config/other/openstates
+configure = admin/config/other/openstates

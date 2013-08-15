@@ -27,7 +27,7 @@ function _openstates_search() {
     // echo '<pre>'; var_dump ($bills); echo '</pre>';
 
     $searchform = drupal_get_form('openstates_search_form');
-    dpm($searchform, 'form state');
+    // dpm($searchform, 'form state');
     $content .= drupal_render($searchform);
 
 
@@ -140,7 +140,7 @@ function openstates_apicall($form, &$form_state) {
   $url = 'http://openstates.org/api/v1/bills/?q=' . $form_state["values"]["search"] . '&updated_since=' . $form_state["values"]["updated_since"] . '&apikey=' . variable_get('openstates_key', '');
 
   // print_r($url); exit;
-  dpm($url, 'URL');
+  // dpm($url, 'URL');
 
   $json = file_get_contents($url,0,null,null);
   $json_output = json_decode($json, true);
