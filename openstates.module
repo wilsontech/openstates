@@ -1,0 +1,155 @@
+<?php
+
+/*
+ * @file
+ * Drupal Module: OpenStates
+ * Add API key and legislative tracking through Open States
+ *
+ * @author: Name (drupal user)
+ *
+ * TO DO:
+ * 1) admin settings form to store api key
+ * 2) page to accept search term and query the API
+ * 3) figure out out to use, store us state info
+ * 4) Add filters to API call:
+ *   a. date
+ *   b. state
+ *   c. other?
+ * 5) drupal display and sort of results
+ */
+
+
+
+/**
+ * Implements hook_help().
+ */
+function openstates_help($path, $arg) {
+  switch ($path) {
+    case 'admin/config/other/openstates':
+      return t('<a href="@os_url">Open States</a> is a ...', array('@os_url' => 'http://www.openstates.org'));
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function openstates_permission() {
+  return array(
+    'administer open states' => array(
+      'title' => t('Administer Open States'),
+      'description' => t('Add API key and other administrative tasks for Open States integration.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function openstates_menu() {
+  $items['admin/config/other/openstates'] = array(
+    'title' => 'Open States',
+    'description' => 'Configure API key.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('openstates_admin_settings_form'),
+    'access arguments' => array('administer open states'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'openstates.admin.inc',
+  );
+
+  $items['openstates'] = array(
+    'title' => 'Open States',
+    'description' => 'Query the Open States API',
+    'menu_name' => 'main-menu',
+    'file' => 'search.inc',
+    'page callback' => '_openstates_search',
+    'access arguments' => array('access content'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+
+function openstates_search() {
+
+  $content = '';
+  $content .= 'Open States.';
+  $apikey = variable_get('openstates_key', '');
+  if (!empty($apikey)) {
+
+    $content .= 'Your API key is: ' . $apikey;
+
+    $q = "tobacco";
+    $updated_since = '2013-03-01';
+
+    #$url = 'http://openstates.org/api/v1/bills/?q=agriculture&state=vt&chamber=upper&apikey=YOUR_API_KEY';
+    $url = 'http://openstates.org/api/v1/bills/?q=' . $q . '&updated_since=' . $updated_since . '&apikey=' . $apikey;
+
+    #print_r($url); exit;
+
+    $json = file_get_contents($url,0,null,null);
+    $json_output = json_decode($json, true);
+
+    $request = drupal_http_request($url);
+    $data = drupal_json_decode($request->data);
+    // echo '<pre>'; var_dump ($data); echo '</pre>';
+    //
+    $content .= '
+    <p><strong>Query:</strong> ' . $q . '
+    <br /><strong>Results</strong> ' . count($data) . '
+    </p>';
+    $bills = array();
+    foreach ($data AS $a => $bill) {
+      // $bills{$a} = array("title" => $bill["title"]);
+      $bills{$a} = array(
+        'data' => array("id"=>$bill['bill_id'], "title"=>$bill['title'],"state"=>$bill['state']),
+      );
+      // echo '<pre>'; print_r($bill["title"]); echo '</pre>';
+    }
+
+    $header = array(
+      array('data' => 'Bill ID', 'field' => 'bill_id'),
+      array('data' => 'Title', 'field' => 'title'),
+      array('data' => 'State', 'field' => 'state'),
+    );
+    // echo '<pre>'; var_dump ($bills); echo '</pre>';
+
+    $content .= drupal_get_form('openstates_searchform');
+
+    $content .= theme("table",
+      array (
+        'header' => $header,
+        'rows' => $bills,
+        )
+      );
+
+    /*
+    $i = 0;
+
+    foreach ($bills AS $a => $b) {
+
+      $i++;
+      // echo '<pre>'; print_r($bill); echo '</pre><hr />';
+      $content .= '
+      <p>
+      ' . $i . ') <br />
+      <strong>State:</strong> ' . strtoupper($b["state"]);
+      echo '<br /><strong>Title:</strong> ' . $b["title"];
+      echo '<br /><strong>Bill ID:</strong> ';
+      echo '<a href="bill.php?state=' . $b["state"] . '&bill_id=' . $b["bill_id"] . '&session=' . $b["session"] . '&chamber=' . $b["chamber"] . '">';
+      echo $b["bill_id"];
+      echo '</a>';
+      if (!empty($b["subjects"])) echo '<br /><strong>Subjects:</strong> ' . implode(', ', $b["subjects"]);
+      echo '<br /><strong>Updated:</strong> ' . $b["updated_at"];
+      echo '</p>';
+
+    }
+ */
+
+  }
+
+  return $content;
+
+}
+
+
