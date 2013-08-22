@@ -101,7 +101,6 @@ function openstates_search_form_submit($form, &$form_state) {
   // dpm($form_state);
   $results = openstates_apicall($form, $form_state);
 
-  // dpm($results, "results");
 
   // dpm($bills, "BILLS");
   $header = array(
@@ -112,7 +111,10 @@ function openstates_search_form_submit($form, &$form_state) {
 
   $content = openstates_print($header, $results);
   return $content;
+
 /*
+
+
   $content = '';
     $content .= theme("table",
       array (
@@ -122,17 +124,17 @@ function openstates_search_form_submit($form, &$form_state) {
       );
    */
 
+/*
   $content = theme("table",
       array (
         'header' => $header,
         'rows' => $results,
         )
     );
+  dpm($content, "CONTENT");
 
   render($content);
-
-  // dpm($content, "CONTENT");
-
+*/
 }
 
 function openstates_apicall($form, &$form_state) {
@@ -166,18 +168,17 @@ function openstates_apicall($form, &$form_state) {
 }
 
 function openstates_print($header, $data) {
-
+  echo '<hr />'; exit;
   // dpm($header, "HEADER");
   // dpm($data, 'DATA');
   $content = '<hr />';
-$content .= theme("table",
+  $content .= theme("table",
       array (
         'header' => $header,
         'rows' => $data,
         )
     );
-
-  // dpm($content);
+  $content = $data;
   return $content;
 
 }
